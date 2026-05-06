@@ -94,7 +94,33 @@ const Inventory = () => {
           <div style={{gridColumn: '1 / -1', fontWeight: '700'}}>{editingId ? 'Edit Product' : 'Register New Product'}</div>
           <div>
             <label>Product Name</label>
-            <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} required />
+            <input 
+              type="text" 
+              list="existing-products"
+              placeholder="Select or type new..."
+              value={formData.name} 
+              onChange={e => {
+                const existing = products.find(p => p.name === e.target.value);
+                if (existing) {
+                  setFormData({
+                    ...formData,
+                    name: existing.name,
+                    sku: existing.sku || '',
+                    stockInHand: existing.stockInHand,
+                    stockOnRoute: existing.stockOnRoute || '',
+                    costINR: existing.costINR,
+                    exchangeRate: existing.exchangeRate || '3.3'
+                  });
+                } else {
+                  setFormData({...formData, name: e.target.value});
+                }
+              }} 
+              style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} 
+              required 
+            />
+            <datalist id="existing-products">
+              {products.map(p => <option key={p.id} value={p.name} />)}
+            </datalist>
           </div>
           <div>
             <label>SKU (Internal)</label>

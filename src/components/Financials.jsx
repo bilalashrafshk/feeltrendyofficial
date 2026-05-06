@@ -3,36 +3,43 @@ import {
   getTransactions, 
   addTransaction, 
   editTransaction, 
-  removeTransaction, 
-  getExchangeRate 
+  removeTransaction,
+  getCustomers,
+  getVendors
 } from '../api';
 import { Plus, Filter, User, Briefcase, Search, Edit2, Trash2, X, Check } from 'lucide-react';
 
 const Financials = () => {
   const [transactions, setTransactions] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filterType, setFilterType] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [globalRate, setGlobalRate] = useState(3.3);
   
   const [formData, setFormData] = useState({
     type: 'PAYABLE',
-    entryType: 'BILL', // BILL or PAYMENT
+    entryType: 'BILL',
     amount: '',
     advanceAmount: '',
     description: '',
     currency: 'PKR',
     status: 'PENDING',
-    exchangeRate: '',
+    exchangeRate: '3.3',
     entityName: ''
   });
 
   const fetchData = async () => {
     try {
-      const [transRes, rateRes] = await Promise.all([getTransactions(), getExchangeRate()]);
+      const [transRes, custRes, vendRes] = await Promise.all([
+        getTransactions(),
+        getCustomers(),
+        getVendors()
+      ]);
       setTransactions(transRes.data);
-      setGlobalRate(rateRes.data.rate);
+      setCustomers(custRes.data);
+      setVendors(vendRes.data);
     } catch (err) {
       console.error(err);
     }
@@ -45,22 +52,36 @@ const Financials = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Sanitize payload for Prisma
-      const { entryType, ...rest } = formData;
+      const rate = parseFloat(formData.exchangeRate || 3.3);
+      const amount = parseFloat(formData.amount || 0);
+      const advance = parseFloat(formData.advanceAmount || 0);
+      
+      // Convert to PKR if input was INR
+      const finalAmount = formData.currency === 'INR' ? (amount * rate) : amount;
+      const finalAdvance = formData.currency === 'INR' ? (advance * rate) : advance;
+
       const payload = {
         type: formData.type,
         entityName: formData.entityName,
         description: formData.description,
-        amount: formData.entryType === 'PAYMENT' ? 0 : parseFloat(formData.amount || 0),
-        advanceAmount: formData.entryType === 'PAYMENT' ? parseFloat(formData.amount || 0) : parseFloat(formData.advanceAmount || 0),
-        exchangeRate: parseFloat(formData.exchangeRate || 3.3),
+        amount: formData.entryType === 'PAYMENT' ? 0 : finalAmount,
+        advanceAmount: formData.entryType === 'PAYMENT' ? finalAmount : finalAdvance,
+        exchangeRate: rate,
         status: formData.status,
-        currency: formData.currency
+        currency: 'PKR' // We always store in PKR for uniform ledger tracking
       };
+
+      // Auto-create entity if new
+      if (formData.type === 'PAYABLE') {
+        const exists = vendors.find(v => v.name.toLowerCase() === formData.entityName.toLowerCase());
+        if (!exists) await addVendor({ name: formData.entityName });
+      } else {
+        const exists = customers.find(c => c.name.toLowerCase() === formData.entityName.toLowerCase());
+        if (!exists) await addCustomer({ name: formData.entityName });
+      }
 
       if (editingId) {
         await editTransaction(editingId, payload);
-        setEditingId(null);
       } else {
         await addTransaction(payload);
       }
@@ -169,20 +190,48 @@ const Financials = () => {
           </div>
           <div>
             <label>{formData.type === 'PAYABLE' ? 'Vendor Name' : 'Customer Name'}</label>
-            <input type="text" placeholder="Enter name..." value={formData.entityName} onChange={e => setFormData({...formData, entityName: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
+            <input 
+              type="text" 
+              list="entities-list"
+              placeholder="Select or type new..." 
+              value={formData.entityName} 
+              onChange={e => setFormData({...formData, entityName: e.target.value})} 
+              style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} 
+            />
+            <datalist id="entities-list">
+              {(formData.type === 'PAYABLE' ? vendors : customers).map(e => <option key={e.id} value={e.name} />)}
+            </datalist>
+          </div>
+          <div>
+            <label>Currency</label>
+            <div style={{display: 'flex', gap: '0.5rem', marginTop: '0.5rem'}}>
+               <button type="button" className={`btn ${formData.currency === 'PKR' ? 'btn-primary' : ''}`} style={{flex: 1, fontSize: '0.8rem', background: formData.currency === 'PKR' ? '' : 'var(--glass-border)'}} onClick={() => setFormData({...formData, currency: 'PKR'})}>PKR</button>
+               <button type="button" className={`btn ${formData.currency === 'INR' ? 'btn-primary' : ''}`} style={{flex: 1, fontSize: '0.8rem', background: formData.currency === 'INR' ? '' : 'var(--glass-border)'}} onClick={() => setFormData({...formData, currency: 'INR'})}>INR (Purchase)</button>
+            </div>
           </div>
           <div>
             <label>Description</label>
-            <input type="text" placeholder="e.g. Received cash, Online transfer..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
+            <input type="text" placeholder="e.g. Batch #42 Purchase" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
           </div>
           <div>
-            <label>{formData.entryType === 'PAYMENT' ? 'Payment Amount' : 'Total Bill Amount'} (PKR)</label>
+            <label>{formData.entryType === 'PAYMENT' ? 'Payment' : 'Amount'} ({formData.currency})</label>
             <input type="number" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} required />
           </div>
+          {formData.currency === 'INR' && (
+            <div>
+              <label>Exchange Rate</label>
+              <input type="number" step="0.01" value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
+            </div>
+          )}
           {formData.entryType === 'BILL' && (
             <div>
-              <label>Advance Paid (If any)</label>
+              <label>Advance Paid ({formData.currency})</label>
               <input type="number" value={formData.advanceAmount} onChange={e => setFormData({...formData, advanceAmount: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
+            </div>
+          )}
+          {formData.currency === 'INR' && (
+            <div style={{gridColumn: '1 / -1', color: 'var(--success)', fontSize: '0.85rem'}}>
+               <Info size={14} /> Converted to PKR: Rs. {Math.round(parseFloat(formData.amount || 0) * parseFloat(formData.exchangeRate || 3.3)).toLocaleString()}
             </div>
           )}
           {formData.type === 'PAYABLE' && (
