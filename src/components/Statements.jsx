@@ -37,10 +37,21 @@ const Statements = () => {
       .reduce((acc, t) => acc + (t.amount - t.advanceAmount), 0);
   };
 
-  const filteredParties = [...customers, ...vendors]
-    .map(p => ({ ...p, balance: getPartyBalance(p.name) }))
+  // Derive active parties from transactions to ensure deleted ones don't show up
+  const activePartyNames = [...new Set(transactions.map(t => t.entityName))].filter(Boolean);
+  
+  const filteredParties = activePartyNames
+    .map(name => {
+      const isVendor = vendors.some(v => v.name === name);
+      return {
+        id: name,
+        name,
+        isVendor,
+        balance: getPartyBalance(name)
+      };
+    })
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    .sort((a, b) => b.balance - a.balance);
+    .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
 
   const partyTransactions = transactions
     .filter(t => t.entityName === selectedParty?.name)
@@ -100,7 +111,7 @@ const Statements = () => {
             >
               <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
-                  {customers.find(c => c.id === p.id) ? <User size={16} color="var(--primary)" /> : <Briefcase size={16} color="var(--warning)" />}
+                  {p.isVendor ? <Briefcase size={16} color="var(--warning-color)" /> : <User size={16} color="var(--primary-accent)" />}
                   <span style={{fontWeight: '600', fontSize: '0.9rem'}}>{p.name}</span>
                 </div>
                 <ChevronRight size={14} color="var(--text-muted)" />
