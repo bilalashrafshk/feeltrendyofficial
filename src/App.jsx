@@ -1,21 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Component Imports
-        import Sidebar from './components/Sidebar';
-        import Dashboard from './components/Dashboard';
-        import Inventory from './components/Inventory';
-        import Financials from './components/Financials';
-        import Shipments from './components/Shipments';
-        import Invoices from './components/Invoices';
-        import Statements from './components/Statements';
-        import Settings from './components/Settings';
+import Sidebar from './components/Sidebar';
+import Dashboard from './components/Dashboard';
+import Inventory from './components/Inventory';
+import Financials from './components/Financials';
+import Shipments from './components/Shipments';
+import Invoices from './components/Invoices';
+import Statements from './components/Statements';
+import Settings from './components/Settings';
 
 function App() {
+  const [isLightTheme, setIsLightTheme] = useState(localStorage.getItem('theme') === 'light');
+
+  useEffect(() => {
+    if (isLightTheme) {
+      document.documentElement.classList.add('light-theme');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+      localStorage.setItem('theme', 'dark');
+    }
+  }, [isLightTheme]);
+
+  const toggleTheme = () => setIsLightTheme(!isLightTheme);
+
   return (
     <Router>
       <div className="app-container">
-        <Sidebar />
+        <Sidebar isLightTheme={isLightTheme} toggleTheme={toggleTheme} />
         
         <main className="main-content">
           <Routes>
