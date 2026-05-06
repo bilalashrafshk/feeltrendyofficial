@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  sku          String?  @unique
+  stockInHand  Int      @default(0)
+  stockOnRoute Int      @default(0)
+  costINR      Float    @default(0)
+  pricePKR     Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Transaction {
+  id            String          @id @default(uuid())
+  type          TransactionType
+  amount        Float
+  advanceAmount Float           @default(0)
+  currency      String          @default("PKR")
+  status        String          @default("PENDING")
+  description   String?
+  date          DateTime        @default(now())
+  dueDate       DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+enum TransactionType {
+  PAYABLE
+  RECEIVABLE
+}
+
+model Shipment {
+  id              String         @id @default(uuid())
+  trackingNumber  String?        @unique
+  status          ShipmentStatus @default(IN_TRANSIT)
+  items           Json?
+  expectedArrival DateTime?
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+enum ShipmentStatus {
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  customerName  String
+  items         Json
+  totalAmount   Float
+  advanceAmount Float    @default(0)
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ExchangeRate {
+  id        String   @id @default(uuid())
+  from      String
+  to        String
+  rate      Float
+  updatedAt DateTime @updatedAt
+}
