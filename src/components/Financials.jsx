@@ -58,7 +58,11 @@ const Financials = () => {
         alert("Please apply an exchange rate for this INR transaction to proceed.");
         return;
       }
-      const rate = parseFloat(formData.exchangeRate);
+      const rate = formData.currency === 'PKR' ? 1.0 : parseFloat(formData.exchangeRate || 3.3);
+      if (isNaN(rate)) {
+        alert("Invalid exchange rate. Please enter a number.");
+        return;
+      }
       const amount = parseFloat(formData.amount || 0);
       const advance = parseFloat(formData.advanceAmount || 0);
       
