@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getProducts, addProduct, editProduct, removeProduct } from '../api';
-import { Plus, Info, Edit2, Trash2, X, Package, Tag, Archive, Truck, DollarSign } from 'lucide-react';
+import { Plus, Info, Edit2, Trash2, X, Package, Tag, Archive, Truck, DollarSign, Wallet } from 'lucide-react';
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -12,8 +12,10 @@ const Inventory = () => {
     sku: '',
     stockInHand: '',
     stockOnRoute: '',
-    costINR: '',
-    exchangeRate: ''
+    costAmount: '',
+    costCurrency: 'INR',
+    costRate: '',
+    saleRate: ''
   });
 
   const fetchData = async () => {
@@ -32,21 +34,25 @@ const Inventory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (!formData.exchangeRate) {
-        alert("Please apply an exchange rate for this product to proceed.");
+      const cRate = parseFloat(formData.costRate || 1);
+      const sRate = parseFloat(formData.saleRate || 1);
+      const amount = parseFloat(formData.costAmount || 0);
+      
+      if (!formData.costRate || !formData.saleRate) {
+        alert("Please apply both Cost Rate and Sale Rate to proceed.");
         return;
       }
-      const rate = parseFloat(formData.exchangeRate);
-      const cost = parseFloat(formData.costINR || 0);
-      
+
       const payload = {
         name: formData.name,
         sku: formData.sku,
         stockInHand: parseInt(formData.stockInHand || 0),
         stockOnRoute: parseInt(formData.stockOnRoute || 0),
-        costINR: cost,
-        exchangeRate: rate,
-        pricePKR: cost * rate
+        costAmount: amount,
+        costCurrency: formData.costCurrency,
+        costRate: cRate,
+        saleRate: sRate,
+        pricePKR: amount * sRate
       };
 
       if (editingId) {
@@ -57,7 +63,7 @@ const Inventory = () => {
 
       setShowForm(false);
       setEditingId(null);
-      setFormData({ name: '', sku: '', stockInHand: '', stockOnRoute: '', costINR: '', exchangeRate: '3.3' });
+      setFormData({ name: '', sku: '', stockInHand: '', stockOnRoute: '', costAmount: '', costCurrency: 'INR', costRate: '', saleRate: '' });
       fetchData();
     } catch (err) {
       alert("Error saving product");
@@ -71,8 +77,10 @@ const Inventory = () => {
       sku: p.sku || '',
       stockInHand: p.stockInHand,
       stockOnRoute: p.stockOnRoute,
-      costINR: p.costINR,
-      exchangeRate: p.exchangeRate || '3.3'
+      costAmount: p.costAmount,
+      costCurrency: p.costCurrency || 'INR',
+      costRate: p.costRate,
+      saleRate: p.saleRate
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -90,7 +98,7 @@ const Inventory = () => {
       <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem'}}>
         <div>
           <h1 style={{fontSize: '2rem', fontWeight: '900', letterSpacing: '-0.75px', marginBottom: '0.25rem'}}>Inventory Control</h1>
-          <p style={{color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500'}}>Manage stock and cross-border costs</p>
+          <p style={{color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500'}}>Multi-currency cost & dual-rate pricing</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); setEditingId(null); }} style={{padding: '0.8rem 1.5rem', borderRadius: '1rem'}}>
           {showForm ? <X size={18} /> : <Plus size={18} />} {showForm ? 'Cancel' : 'Add Product'}
@@ -101,7 +109,7 @@ const Inventory = () => {
         <div className="glass-panel" style={{marginBottom: '3rem', padding: '2.5rem', border: editingId ? '1px solid var(--primary-accent)' : '1px solid var(--border-color)'}}>
           <h3 style={{marginBottom: '2rem', fontSize: '1.25rem', fontWeight: '800'}}>{editingId ? 'Update Stock Item' : 'Register New Product'}</h3>
           <form onSubmit={handleSubmit} style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2rem'}}>
-            <div className="form-group">
+            <div className="form-group" style={{gridColumn: '1 / -1'}}>
               <label>Product Identity</label>
               <div style={{position: 'relative'}}>
                 <Tag size={18} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)'}} />
@@ -119,8 +127,10 @@ const Inventory = () => {
                         sku: existing.sku || '',
                         stockInHand: existing.stockInHand,
                         stockOnRoute: existing.stockOnRoute || '',
-                        costINR: existing.costINR,
-                        exchangeRate: existing.exchangeRate || '3.3'
+                        costAmount: existing.costAmount,
+                        costCurrency: existing.costCurrency || 'INR',
+                        costRate: existing.costRate,
+                        saleRate: existing.saleRate
                       });
                     } else {
                       setFormData({...formData, name: e.target.value});
@@ -134,6 +144,7 @@ const Inventory = () => {
                 </datalist>
               </div>
             </div>
+            
             <div className="form-group">
               <label>SKU Number</label>
               <div style={{position: 'relative'}}>
@@ -141,36 +152,67 @@ const Inventory = () => {
                  <input type="text" placeholder="Internal ID" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} style={{paddingLeft: '2.5rem'}} />
               </div>
             </div>
+
             <div className="form-group">
-              <label>Current Stock (In Hand)</label>
-              <input type="number" value={formData.stockInHand} onChange={e => setFormData({...formData, stockInHand: e.target.value})} />
+               <label>Base Cost Currency</label>
+               <div style={{display: 'flex', gap: '0.5rem', marginTop: '0.5rem'}}>
+                 {['INR', 'PKR', 'USD'].map(curr => (
+                   <button 
+                    key={curr}
+                    type="button" 
+                    className={`btn ${formData.costCurrency === curr ? 'btn-primary' : 'btn-outline'}`}
+                    style={{flex: 1, padding: '0.5rem', fontSize: '0.75rem'}}
+                    onClick={() => setFormData({...formData, costCurrency: curr, costRate: curr === 'PKR' ? '1.0' : formData.costRate})}
+                   >
+                     {curr}
+                   </button>
+                 ))}
+               </div>
             </div>
+
             <div className="form-group">
-              <label>Stock in Transit (On Route)</label>
-              <input type="number" value={formData.stockOnRoute} onChange={e => setFormData({...formData, stockOnRoute: e.target.value})} />
-            </div>
-            <div className="form-group">
-              <label>Base Cost (INR)</label>
+              <label>Cost Amount ({formData.costCurrency})</label>
               <div style={{position: 'relative'}}>
-                <span style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontWeight: '700', fontSize: '0.8rem'}}>₹</span>
-                <input type="number" value={formData.costINR} onChange={e => setFormData({...formData, costINR: e.target.value})} style={{paddingLeft: '2.5rem'}} />
+                <Wallet size={18} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)'}} />
+                <input type="number" value={formData.costAmount} onChange={e => setFormData({...formData, costAmount: e.target.value})} style={{paddingLeft: '2.5rem'}} required />
               </div>
             </div>
+
             <div className="form-group">
-              <label>Batch Rate (PKR)</label>
-              <input type="number" step="0.01" value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: e.target.value})} />
+              <label>Cost Rate (Actual Purchase Rate)</label>
+              <input type="number" step="0.01" value={formData.costRate} onChange={e => setFormData({...formData, costRate: e.target.value})} placeholder={formData.costCurrency === 'PKR' ? "1.0" : "e.g. 3.3"} required />
             </div>
-            
-            <div style={{gridColumn: '1 / -1', background: 'rgba(168, 85, 247, 0.05)', padding: '1.25rem', borderRadius: '1rem', display: 'flex', alignItems: 'center', gap: '1rem'}}>
-               <div style={{background: 'var(--primary-accent)', padding: '0.6rem', borderRadius: '0.75rem'}}>
-                 <DollarSign size={20} color="white" />
-               </div>
-               <div>
-                  <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700'}}>CALCULATED LANDED PRICE</p>
-                  <p style={{fontSize: '1.25rem', fontWeight: '800'}}>
-                    {formData.exchangeRate ? `Rs. ${Math.round(parseFloat(formData.costINR || 0) * parseFloat(formData.exchangeRate)).toLocaleString()}` : 'Enter Rate to Calculate'}
-                  </p>
-               </div>
+
+            <div className="form-group">
+              <label>Sale Rate (Market Pricing Rate)</label>
+              <input type="number" step="0.01" value={formData.saleRate} onChange={e => setFormData({...formData, saleRate: e.target.value})} placeholder="e.g. 3.5" required />
+            </div>
+
+            <div className="form-group">
+              <label>Available Stock</label>
+              <input type="number" value={formData.stockInHand} onChange={e => setFormData({...formData, stockInHand: e.target.value})} />
+            </div>
+
+            <div style={{gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
+                <div style={{background: 'var(--panel-bg)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                  <div style={{background: 'var(--danger-color)', padding: '0.6rem', borderRadius: '0.75rem'}}>
+                    <TrendingDown size={20} color="white" />
+                  </div>
+                  <div>
+                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>ACTUAL LANDED COST</p>
+                      <p style={{fontSize: '1.1rem', fontWeight: '800'}}>Rs. {Math.round(parseFloat(formData.costAmount || 0) * parseFloat(formData.costRate || 0)).toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div style={{background: 'rgba(168, 85, 247, 0.05)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid var(--primary-accent)', display: 'flex', alignItems: 'center', gap: '1rem'}}>
+                  <div style={{background: 'var(--primary-accent)', padding: '0.6rem', borderRadius: '0.75rem'}}>
+                    <DollarSign size={20} color="white" />
+                  </div>
+                  <div>
+                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>SUGGESTED SALE PRICE</p>
+                      <p style={{fontSize: '1.1rem', fontWeight: '800'}}>Rs. {Math.round(parseFloat(formData.costAmount || 0) * parseFloat(formData.saleRate || 0)).toLocaleString()}</p>
+                  </div>
+                </div>
             </div>
 
             <button type="submit" className="btn btn-primary" style={{gridColumn: '1 / -1', padding: '1rem', fontSize: '1rem'}}>
@@ -186,11 +228,12 @@ const Inventory = () => {
             <thead>
               <tr>
                 <th>Stock Item</th>
-                <th>SKU</th>
-                <th>Available</th>
-                <th>In Transit</th>
-                <th>Batch Rate</th>
-                <th style={{textAlign: 'right'}}>Local Price</th>
+                <th>Cost</th>
+                <th>Qty</th>
+                <th>Cost Rate</th>
+                <th>Sale Rate</th>
+                <th style={{textAlign: 'right'}}>Landed Cost</th>
+                <th style={{textAlign: 'right'}}>Sale Price</th>
                 <th style={{textAlign: 'center'}}>Actions</th>
               </tr>
             </thead>
@@ -202,21 +245,21 @@ const Inventory = () => {
                        <div style={{background: 'rgba(139, 92, 246, 0.1)', padding: '0.6rem', borderRadius: '0.75rem'}}>
                          <Package size={16} color="var(--primary-accent)" />
                        </div>
-                       <span style={{fontWeight: '700'}}>{p.name}</span>
+                       <div>
+                         <div style={{fontWeight: '700'}}>{p.name}</div>
+                         <div style={{fontSize: '0.7rem', color: 'var(--text-secondary)'}}>{p.sku || 'No SKU'}</div>
+                       </div>
                     </div>
                   </td>
-                  <td style={{color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '600'}}>{p.sku || 'N/A'}</td>
+                  <td>{p.costAmount} {p.costCurrency}</td>
                   <td>
                     <span style={{padding: '0.3rem 0.6rem', borderRadius: '0.4rem', background: p.stockInHand > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: p.stockInHand > 0 ? 'var(--success-color)' : 'var(--danger-color)', fontWeight: '700', fontSize: '0.8rem'}}>
                       {p.stockInHand} Units
                     </span>
                   </td>
-                  <td>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-secondary)', fontSize: '0.85rem'}}>
-                       <Truck size={14} /> {p.stockOnRoute || 0}
-                    </div>
-                  </td>
-                  <td style={{color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '600'}}>{p.exchangeRate || '3.3'}</td>
+                  <td style={{color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '600'}}>{p.costRate}</td>
+                  <td style={{color: 'var(--primary-accent)', fontSize: '0.85rem', fontWeight: '600'}}>{p.saleRate}</td>
+                  <td style={{textAlign: 'right', fontWeight: '600', color: 'var(--danger-color)'}}>Rs. {Math.round(p.costAmount * p.costRate).toLocaleString()}</td>
                   <td style={{textAlign: 'right', fontWeight: '800', color: 'var(--primary-accent)'}}>Rs. {Math.round(p.pricePKR).toLocaleString()}</td>
                   <td style={{textAlign: 'center'}}>
                     <div style={{display: 'flex', gap: '0.5rem', justifyContent: 'center'}}>
