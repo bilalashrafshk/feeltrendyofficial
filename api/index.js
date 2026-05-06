@@ -169,7 +169,11 @@ app.get('/api/customers', async (req, res) => {
 
 app.post('/api/customers', async (req, res) => {
   try {
-    const customer = await prisma.customer.create({ data: req.body });
+    const customer = await prisma.customer.upsert({
+      where: { name: req.body.name },
+      update: {},
+      create: { name: req.body.name }
+    });
     res.json({ data: customer });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -188,7 +192,11 @@ app.get('/api/vendors', async (req, res) => {
 
 app.post('/api/vendors', async (req, res) => {
   try {
-    const vendor = await prisma.vendor.create({ data: req.body });
+    const vendor = await prisma.vendor.upsert({
+      where: { name: req.body.name },
+      update: {},
+      create: { name: req.body.name }
+    });
     res.json({ data: vendor });
   } catch (err) {
     res.status(500).json({ error: err.message });
