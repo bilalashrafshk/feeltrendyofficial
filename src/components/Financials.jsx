@@ -5,7 +5,9 @@ import {
   editTransaction, 
   removeTransaction,
   getCustomers,
-  getVendors
+  addCustomer,
+  getVendors,
+  addVendor
 } from '../api';
 import { Plus, Filter, User, Briefcase, Search, Edit2, Trash2, X, Check, Info } from 'lucide-react';
 
