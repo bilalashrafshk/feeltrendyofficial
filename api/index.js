@@ -20,21 +20,48 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
   try {
-    const product = await prisma.product.create({ data: req.body });
+    console.log("Creating Product with payload:", JSON.stringify(req.body));
+    
+    // Sanitize numerical fields to prevent Prisma crashes
+    const data = {
+      ...req.body,
+      stockInHand: parseInt(req.body.stockInHand || 0),
+      stockOnRoute: parseInt(req.body.stockOnRoute || 0),
+      costAmount: parseFloat(req.body.costAmount || 0),
+      costRate: parseFloat(req.body.costRate || 1),
+      saleRate: parseFloat(req.body.saleRate || 0),
+      shippingChargesPKR: parseFloat(req.body.shippingChargesPKR || 0),
+      pricePKR: parseFloat(req.body.pricePKR || 0),
+    };
+
+    const product = await prisma.product.create({ data });
     res.json({ data: product });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Prisma Create Error:", err);
+    res.status(500).json({ error: err.message, details: err.code });
   }
 });
 
 app.put('/api/products/:id', async (req, res) => {
   try {
+    const data = {
+      ...req.body,
+      stockInHand: req.body.stockInHand !== undefined ? parseInt(req.body.stockInHand) : undefined,
+      stockOnRoute: req.body.stockOnRoute !== undefined ? parseInt(req.body.stockOnRoute) : undefined,
+      costAmount: req.body.costAmount !== undefined ? parseFloat(req.body.costAmount) : undefined,
+      costRate: req.body.costRate !== undefined ? parseFloat(req.body.costRate) : undefined,
+      saleRate: req.body.saleRate !== undefined ? parseFloat(req.body.saleRate) : undefined,
+      shippingChargesPKR: req.body.shippingChargesPKR !== undefined ? parseFloat(req.body.shippingChargesPKR) : undefined,
+      pricePKR: req.body.pricePKR !== undefined ? parseFloat(req.body.pricePKR) : undefined,
+    };
+
     const product = await prisma.product.update({
       where: { id: req.params.id },
-      data: req.body
+      data
     });
     res.json({ data: product });
   } catch (err) {
+    console.error("Prisma Update Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
