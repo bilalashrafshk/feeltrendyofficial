@@ -74,12 +74,15 @@ const Financials = () => {
       };
 
       // Auto-create entity if new
-      if (formData.type === 'PAYABLE') {
-        const exists = vendors.find(v => v.name.toLowerCase() === formData.entityName.toLowerCase());
-        if (!exists) await addVendor({ name: formData.entityName });
-      } else {
-        const exists = customers.find(c => c.name.toLowerCase() === formData.entityName.toLowerCase());
-        if (!exists) await addCustomer({ name: formData.entityName });
+      const nameKey = (formData.entityName || '').trim();
+      if (nameKey) {
+        if (formData.type === 'PAYABLE') {
+          const exists = (vendors || []).find(v => (v.name || '').toLowerCase() === nameKey.toLowerCase());
+          if (!exists) await addVendor({ name: nameKey });
+        } else {
+          const exists = (customers || []).find(c => (c.name || '').toLowerCase() === nameKey.toLowerCase());
+          if (!exists) await addCustomer({ name: nameKey });
+        }
       }
 
       if (editingId) {
@@ -89,10 +92,11 @@ const Financials = () => {
       }
 
       setShowForm(false);
-      setFormData({ type: 'PAYABLE', amount: '', advanceAmount: '', description: '', currency: 'PKR', status: 'PENDING', exchangeRate: '', entityName: '' });
+      setFormData({ type: 'PAYABLE', entryType: 'BILL', amount: '', advanceAmount: '', description: '', currency: 'PKR', status: 'PENDING', exchangeRate: '3.3', entityName: '' });
       fetchData();
     } catch (err) {
-      alert("Error saving transaction");
+      console.error("Save Transaction Error:", err);
+      alert(`Error saving transaction: ${err.message || "Please check connection"}`);
     }
   };
 
