@@ -14,6 +14,7 @@ model Product {
   stockInHand  Int      @default(0)
   stockOnRoute Int      @default(0)
   costINR      Float    @default(0)
+  exchangeRate Float    @default(3.3)
   pricePKR     Float    @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

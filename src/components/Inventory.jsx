@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getProducts, addProduct, editProduct, removeProduct, getExchangeRate } from '../api';
+import { getProducts, addProduct, editProduct, removeProduct } from '../api';
 import { Plus, Info, Edit2, Trash2, X } from 'lucide-react';
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [exchangeRate, setExchangeRate] = useState(3.3);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -14,13 +13,13 @@ const Inventory = () => {
     stockInHand: '',
     stockOnRoute: '',
     costINR: '',
+    exchangeRate: '3.3'
   });
 
   const fetchData = async () => {
     try {
-      const [prodRes, rateRes] = await Promise.all([getProducts(), getExchangeRate()]);
+      const prodRes = await getProducts();
       setProducts(prodRes.data);
-      setExchangeRate(rateRes.data.rate || 3.3);
     } catch (err) {
       console.error(err);
     }
@@ -33,12 +32,16 @@ const Inventory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const rate = parseFloat(formData.exchangeRate || 3.3);
+      const cost = parseFloat(formData.costINR || 0);
+      
       const payload = {
         ...formData,
         stockInHand: parseInt(formData.stockInHand || 0),
         stockOnRoute: parseInt(formData.stockOnRoute || 0),
-        costINR: parseFloat(formData.costINR || 0),
-        pricePKR: parseFloat(formData.costINR || 0) * exchangeRate
+        costINR: cost,
+        exchangeRate: rate,
+        pricePKR: cost * rate
       };
 
       if (editingId) {
@@ -49,7 +52,7 @@ const Inventory = () => {
 
       setShowForm(false);
       setEditingId(null);
-      setFormData({ name: '', sku: '', stockInHand: '', stockOnRoute: '', costINR: '' });
+      setFormData({ name: '', sku: '', stockInHand: '', stockOnRoute: '', costINR: '', exchangeRate: '3.3' });
       fetchData();
     } catch (err) {
       alert("Error saving product");
@@ -63,7 +66,8 @@ const Inventory = () => {
       sku: p.sku || '',
       stockInHand: p.stockInHand,
       stockOnRoute: p.stockOnRoute,
-      costINR: p.costINR
+      costINR: p.costINR,
+      exchangeRate: p.exchangeRate || '3.3'
     });
     setShowForm(true);
   };
@@ -107,8 +111,12 @@ const Inventory = () => {
             <label>Base Cost (INR)</label>
             <input type="number" value={formData.costINR} onChange={e => setFormData({...formData, costINR: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
           </div>
-          <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem'}}>
-            <Info size={14} /> Price in PKR: {Math.round(parseFloat(formData.costINR || 0) * exchangeRate).toLocaleString()}
+          <div>
+            <label>Exchange Rate</label>
+            <input type="number" step="0.01" value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
+          </div>
+          <div style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem'}}>
+            <Info size={14} /> Resulting Price: Rs. {Math.round(parseFloat(formData.costINR || 0) * parseFloat(formData.exchangeRate || 3.3)).toLocaleString()}
           </div>
           <button type="submit" className="btn btn-primary" style={{gridColumn: '1 / -1', marginTop: '1rem'}}>
             {editingId ? 'Update Product' : 'Save to Master List'}
@@ -124,6 +132,7 @@ const Inventory = () => {
               <th>SKU</th>
               <th>Available</th>
               <th>Transit</th>
+              <th>Rate</th>
               <th>Price (PKR)</th>
               <th>Actions</th>
             </tr>
@@ -135,6 +144,7 @@ const Inventory = () => {
                 <td style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{p.sku || '-'}</td>
                 <td>{p.stockInHand}</td>
                 <td>{p.stockOnRoute || '-'}</td>
+                <td style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{p.exchangeRate || '3.3'}</td>
                 <td style={{color: 'var(--primary)', fontWeight: '600'}}>Rs. {Math.round(p.pricePKR).toLocaleString()}</td>
                 <td>
                   <div style={{display: 'flex', gap: '0.5rem'}}>
