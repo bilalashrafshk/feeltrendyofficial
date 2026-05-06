@@ -8,18 +8,19 @@ datasource db {
 }
 
 model Product {
-  id           String   @id @default(uuid())
-  name         String
-  sku          String?  @unique
-  stockInHand  Int      @default(0)
-  stockOnRoute Int      @default(0)
-  costAmount   Float    @default(0)
-  costCurrency String   @default("INR")
-  costRate     Float    @default(3.3)
-  saleRate     Float    @default(3.3)
-  pricePKR     Float    @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  name               String
+  sku                String?  @unique
+  stockInHand        Int      @default(0)
+  stockOnRoute       Int      @default(0)
+  costAmount         Float    @default(0)
+  costCurrency       String   @default("INR")
+  costRate           Float    @default(3.3)
+  saleRate           Float    @default(3.3)
+  shippingChargesPKR Float    @default(0)
+  pricePKR           Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model Transaction {
