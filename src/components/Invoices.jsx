@@ -87,6 +87,18 @@ const Invoices = () => {
         status: total <= formData.advanceAmount ? 'PAID' : 'PENDING'
       });
 
+      // 4. Update Inventory Stock Levels
+      for (const item of formData.items) {
+        const product = products.find(p => p.id === item.productId);
+        if (product) {
+          const newStock = Math.max(0, product.stockInHand - item.quantity);
+          await editProduct(product.id, { 
+            ...product, 
+            stockInHand: newStock 
+          });
+        }
+      }
+
       setShowForm(false);
       setFormData({ customerName: '', items: [], advanceAmount: 0, exchangeRate: 1.0 });
       fetchData();
