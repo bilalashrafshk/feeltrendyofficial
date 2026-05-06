@@ -102,6 +102,17 @@ const Inventory = () => {
   const totalRev = Math.round(parseFloat(formData.expectedSalePrice || 0) * qty);
   const estProfit = totalRev - calculatedCost;
 
+  // Global Inventory Totals
+  const globalTotals = products.reduce((acc, p) => {
+    const cost = ((p.costAmount * p.costRate) + p.shippingChargesPKR) * p.stockInHand;
+    const rev = p.pricePKR * p.stockInHand;
+    return {
+      cost: acc.cost + cost,
+      rev: acc.rev + rev,
+      units: acc.units + p.stockInHand
+    };
+  }, { cost: 0, rev: 0, units: 0 });
+
   return (
     <div className="inventory-container">
       <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem'}}>
@@ -113,6 +124,30 @@ const Inventory = () => {
           {showForm ? <X size={18} /> : <Plus size={18} />} {showForm ? 'Cancel' : 'Add Product'}
         </button>
       </header>
+
+      {/* Global Inventory Intelligence Dashboard */}
+      <div className="stats-grid" style={{marginBottom: '3rem'}}>
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--danger-color)'}}>
+          <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', marginBottom: '0.5rem'}}>Capital in Stock</p>
+          <div style={{fontSize: '1.5rem', fontWeight: '900'}}>Rs. {Math.round(globalTotals.cost).toLocaleString()}</div>
+          <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>Total Investment</p>
+        </div>
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--primary-accent)'}}>
+          <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', marginBottom: '0.5rem'}}>Potential Revenue</p>
+          <div style={{fontSize: '1.5rem', fontWeight: '900'}}>Rs. {Math.round(globalTotals.rev).toLocaleString()}</div>
+          <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>Projected Gross</p>
+        </div>
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--success-color)'}}>
+          <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', marginBottom: '0.5rem'}}>Net Inventory Profit</p>
+          <div style={{fontSize: '1.5rem', fontWeight: '900', color: 'var(--success-color)'}}>Rs. {Math.round(globalTotals.rev - globalTotals.cost).toLocaleString()}</div>
+          <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>Total Projected Margin</p>
+        </div>
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--warning-color)'}}>
+          <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '800', textTransform: 'uppercase', marginBottom: '0.5rem'}}>Units in Hand</p>
+          <div style={{fontSize: '1.5rem', fontWeight: '900'}}>{globalTotals.units.toLocaleString()}</div>
+          <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>Physical Inventory</p>
+        </div>
+      </div>
 
       {showForm && (
         <div className="glass-panel" style={{marginBottom: '3rem', padding: '2.5rem', border: '1px solid var(--primary-accent)'}}>
