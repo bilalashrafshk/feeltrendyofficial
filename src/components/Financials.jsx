@@ -7,7 +7,7 @@ import {
   getCustomers,
   getVendors
 } from '../api';
-import { Plus, Filter, User, Briefcase, Search, Edit2, Trash2, X, Check } from 'lucide-react';
+import { Plus, Filter, User, Briefcase, Search, Edit2, Trash2, X, Check, Info } from 'lucide-react';
 
 const Financials = () => {
   const [transactions, setTransactions] = useState([]);
@@ -232,12 +232,6 @@ const Financials = () => {
           {formData.currency === 'INR' && (
             <div style={{gridColumn: '1 / -1', color: 'var(--success)', fontSize: '0.85rem'}}>
                <Info size={14} /> Converted to PKR: Rs. {Math.round(parseFloat(formData.amount || 0) * parseFloat(formData.exchangeRate || 3.3)).toLocaleString()}
-            </div>
-          )}
-          {formData.type === 'PAYABLE' && (
-            <div>
-              <label>Exchange Rate</label>
-              <input type="number" placeholder={globalRate} value={formData.exchangeRate} onChange={e => setFormData({...formData, exchangeRate: e.target.value})} style={{width: '100%', padding: '0.5rem', marginTop: '0.5rem'}} />
             </div>
           )}
           <button type="submit" className="btn btn-primary" style={{gridColumn: '1 / -1', marginTop: '1rem'}}>
