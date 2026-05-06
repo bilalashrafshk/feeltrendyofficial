@@ -47,15 +47,15 @@ const Inventory = () => {
 
       const payload = {
         name: formData.name,
-        sku: formData.sku,
+        sku: formData.sku?.trim() || null,
         stockInHand: parseInt(formData.stockInHand || 0),
         stockOnRoute: parseInt(formData.stockOnRoute || 0),
         costAmount: amount,
         costCurrency: formData.costCurrency,
-        costRate: rate, // mapping to existing schema field
-        saleRate: 0, // unused now but keeping for schema compatibility
+        costRate: rate,
+        saleRate: 0,
         shippingChargesPKR: ship,
-        pricePKR: sale // Mapping "Expected Sale Price" to pricePKR in database
+        pricePKR: sale
       };
 
       if (editingId) {
@@ -119,6 +119,14 @@ const Inventory = () => {
             <div className="form-group" style={{gridColumn: '1 / -1'}}>
               <label>Product Name</label>
               <input type="text" placeholder="e.g. Silk Hijab Blue" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+            </div>
+
+            <div className="form-group">
+              <label>SKU (Internal ID)</label>
+              <div style={{position: 'relative'}}>
+                <Archive size={18} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)'}} />
+                <input type="text" placeholder="Optional" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} style={{paddingLeft: '2.5rem'}} />
+              </div>
             </div>
             
             <div className="form-group">
