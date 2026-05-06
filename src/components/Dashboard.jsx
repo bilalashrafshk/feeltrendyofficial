@@ -7,7 +7,10 @@ import {
   Truck,
   Calendar,
   Filter,
-  BarChart2
+  BarChart2,
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -64,7 +67,6 @@ const Dashboard = () => {
           .reduce((acc, inv) => acc + inv.totalAmount, 0);
       };
 
-      // Chart Data Logic (Daily sales for last 7-14 days or selected range)
       const startDate = new Date(dateRange.start);
       const endDate = new Date(dateRange.end);
       const dailyData = [];
@@ -98,121 +100,124 @@ const Dashboard = () => {
   }, [dateRange]);
 
   return (
-    <div className="dashboard">
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem'}}>
+    <div className="dashboard-container">
+      <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem'}}>
         <div>
-          <h1>Business Dashboard</h1>
-          <p style={{color: 'var(--text-muted)'}}>Real-time e-commerce tracking</p>
+          <h1 style={{fontSize: '2.25rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '0.5rem'}}>Performance</h1>
+          <p style={{color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: '500'}}>Overview of your business operations</p>
         </div>
-        <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'var(--glass)', padding: '0.5rem 1rem', borderRadius: '1rem', border: '1px solid var(--glass-border)'}}>
-          <Calendar size={16} color="var(--primary)" />
-          <input 
-            type="date" 
-            value={dateRange.start} 
-            onChange={e => setDateRange({...dateRange, start: e.target.value})}
-            style={{background: 'transparent', border: 'none', color: 'white', fontSize: '0.8rem'}}
-          />
-          <span style={{color: 'var(--text-muted)'}}>to</span>
-          <input 
-            type="date" 
-            value={dateRange.end} 
-            onChange={e => setDateRange({...dateRange, end: e.target.value})}
-            style={{background: 'transparent', border: 'none', color: 'white', fontSize: '0.8rem'}}
-          />
+        
+        <div style={{display: 'flex', gap: '0.75rem', background: 'var(--panel-bg)', padding: '0.6rem 1rem', borderRadius: '1rem', border: '1px solid var(--border-color)', boxShadow: 'var(--card-shadow)'}}>
+          <Calendar size={18} style={{color: 'var(--primary-accent)', alignSelf: 'center'}} />
+          <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+            <input 
+              type="date" 
+              value={dateRange.start} 
+              onChange={e => setDateRange({...dateRange, start: e.target.value})}
+              style={{background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '600', padding: 0}}
+            />
+            <span style={{color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: '800'}}>→</span>
+            <input 
+              type="date" 
+              value={dateRange.end} 
+              onChange={e => setDateRange({...dateRange, end: e.target.value})}
+              style={{background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '600', padding: 0}}
+            />
+          </div>
         </div>
-      </div>
+      </header>
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <div style={{display: 'flex', justifyContent: 'space-between'}}>
-            <span className="stat-label">Today's Sales</span>
-            <TrendingUp size={16} color="var(--success)" />
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--primary-accent)'}}>
+          <div className="stat-header">
+            <span className="stat-label">Daily Revenue</span>
+            <div style={{background: 'rgba(168, 85, 247, 0.1)', padding: '0.5rem', borderRadius: '0.5rem'}}>
+              <DollarSign size={18} color="var(--primary-accent)" />
+            </div>
           </div>
-          <span className="stat-value">Rs. {stats.todaySales.toLocaleString()}</span>
-          <span style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>
-            Yesterday: Rs. {stats.yesterdaySales.toLocaleString()}
-          </span>
+          <div className="stat-value">Rs. {stats.todaySales.toLocaleString()}</div>
+          <div style={{marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: '600', color: stats.todaySales >= stats.yesterdaySales ? 'var(--success-color)' : 'var(--danger-color)'}}>
+            {stats.todaySales >= stats.yesterdaySales ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+            <span>Vs Yesterday: Rs. {stats.yesterdaySales.toLocaleString()}</span>
+          </div>
         </div>
 
-        <div className="stat-card">
-          <div style={{display: 'flex', justifyContent: 'space-between'}}>
-            <span className="stat-label">This Month</span>
-            <BarChart2 size={16} color="var(--primary)" />
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--secondary-accent)'}}>
+          <div className="stat-header">
+            <span className="stat-label">Net Receivables</span>
+            <div style={{background: 'rgba(99, 102, 241, 0.1)', padding: '0.5rem', borderRadius: '0.5rem'}}>
+              <TrendingUp size={18} color="var(--secondary-accent)" />
+            </div>
           </div>
-          <span className="stat-value">Rs. {stats.monthlySales.toLocaleString()}</span>
+          <div className="stat-value">Rs. {stats.totalReceivables.toLocaleString()}</div>
+          <p style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.75rem', fontWeight: '600'}}>Awaiting Collection</p>
         </div>
 
-        <div className="stat-card">
-          <div style={{display: 'flex', justifyContent: 'space-between'}}>
-            <span className="stat-label">Receivables</span>
-            <TrendingUp size={16} color="var(--warning)" />
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--danger-color)'}}>
+          <div className="stat-header">
+            <span className="stat-label">Total Payables</span>
+            <div style={{background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '0.5rem'}}>
+              <TrendingDown size={18} color="var(--danger-color)" />
+            </div>
           </div>
-          <span className="stat-value" style={{color: 'var(--warning)'}}>Rs. {stats.totalReceivables.toLocaleString()}</span>
+          <div className="stat-value">Rs. {stats.totalPayables.toLocaleString()}</div>
+          <p style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.75rem', fontWeight: '600'}}>Outstanding Bills</p>
         </div>
 
-        <div className="stat-card">
-          <div style={{display: 'flex', justifyContent: 'space-between'}}>
-            <span className="stat-label">Payables</span>
-            <TrendingDown size={16} color="var(--danger)" />
+        <div className="stat-card glass-panel" style={{borderLeft: '4px solid var(--warning-color)'}}>
+          <div className="stat-header">
+            <span className="stat-label">Stock Status</span>
+            <div style={{background: 'rgba(245, 158, 11, 0.1)', padding: '0.5rem', borderRadius: '0.5rem'}}>
+              <Package size={18} color="var(--warning-color)" />
+            </div>
           </div>
-          <span className="stat-value" style={{color: 'var(--danger)'}}>Rs. {stats.totalPayables.toLocaleString()}</span>
+          <div className="stat-value">{stats.stockInHand} <span style={{fontSize: '1rem', color: 'var(--text-secondary)'}}>Units</span></div>
+          <div style={{marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: '600'}}>
+             <Truck size={14} /> <span>{stats.stockOnRoute} In Transit</span>
+          </div>
         </div>
       </div>
 
-      <div className="glass-panel" style={{marginTop: '1.5rem', padding: '2rem'}}>
-        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem'}}>
-          <h3>Sales Performance</h3>
-          <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Daily Sales Volume (PKR)</span>
+      <div className="glass-panel" style={{padding: '2.5rem', marginBottom: '2.5rem'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem'}}>
+          <h3 style={{fontSize: '1.25rem', fontWeight: '800'}}>Revenue Trend</h3>
+          <div style={{display: 'flex', alignItems: 'center', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '700'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '0.4rem'}}>
+               <div style={{width: '10px', height: '10px', borderRadius: '2px', background: 'var(--primary-accent)'}}></div> Sales Volume
+            </div>
+          </div>
         </div>
-        <div style={{width: '100%', height: '300px'}}>
+        <div style={{width: '100%', height: '350px'}}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <BarChart data={chartData} margin={{top: 0, right: 0, left: -20, bottom: 0}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
               <XAxis 
                 dataKey="name" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{fill: 'var(--text-muted)', fontSize: 12}} 
+                tick={{fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 600}} 
+                dy={15}
               />
               <YAxis 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{fill: 'var(--text-muted)', fontSize: 12}}
-                tickFormatter={(value) => `Rs. ${value/1000}k`}
+                tick={{fill: 'var(--text-secondary)', fontSize: 11, fontWeight: 600}}
+                tickFormatter={(value) => `Rs.${value/1000}k`}
               />
               <Tooltip 
-                contentStyle={{background: 'var(--bg)', border: '1px solid var(--glass-border)', borderRadius: '0.5rem'}}
-                itemStyle={{color: 'var(--primary)'}}
+                cursor={{fill: 'rgba(139, 92, 246, 0.05)'}}
+                contentStyle={{background: 'var(--panel-bg)', backdropFilter: 'blur(10px)', border: '1px solid var(--border-color)', borderRadius: '1rem', padding: '1rem', boxShadow: 'var(--card-shadow)'}}
+                itemStyle={{color: 'var(--primary-accent)', fontWeight: '800', fontSize: '0.9rem'}}
+                labelStyle={{color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: '700'}}
               />
-              <Bar dataKey="sales" radius={[4, 4, 0, 0]}>
+              <Bar dataKey="sales" radius={[6, 6, 0, 0]} barSize={32}>
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.sales > 0 ? 'var(--primary)' : 'rgba(255,255,255,0.1)'} />
+                  <Cell key={`cell-${index}`} fill={entry.sales > 0 ? 'var(--primary-accent)' : 'var(--border-color)'} fillOpacity={0.9} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
-
-      <div style={{marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem'}}>
-         <div className="stat-card" style={{flexDirection: 'row', alignItems: 'center', gap: '1rem'}}>
-           <div style={{background: 'rgba(192, 132, 252, 0.1)', padding: '1rem', borderRadius: '1rem'}}>
-             <Package color="var(--primary)" />
-           </div>
-           <div>
-             <span className="stat-label">Stock in Hand</span>
-             <div className="stat-value" style={{fontSize: '1.25rem'}}>{stats.stockInHand} Units</div>
-           </div>
-         </div>
-         <div className="stat-card" style={{flexDirection: 'row', alignItems: 'center', gap: '1rem'}}>
-           <div style={{background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '1rem'}}>
-             <Truck color="var(--warning)" />
-           </div>
-           <div>
-             <span className="stat-label">Stock on Route</span>
-             <div className="stat-value" style={{fontSize: '1.25rem'}}>{stats.stockOnRoute} Units</div>
-           </div>
-         </div>
       </div>
     </div>
   );
