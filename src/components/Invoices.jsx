@@ -64,7 +64,7 @@ const Invoices = () => {
       // 1. Create Invoice
       const invRes = await addInvoice({
         customerName: formData.customerName,
-        items: items,
+        items: formData.items,
         totalAmount: total,
         advanceAmount: parseFloat(formData.advanceAmount || 0),
         exchangeRate: parseFloat(formData.exchangeRate || 1)
