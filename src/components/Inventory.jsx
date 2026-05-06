@@ -36,7 +36,8 @@ const Inventory = () => {
       const cost = parseFloat(formData.costINR || 0);
       
       const payload = {
-        ...formData,
+        name: formData.name,
+        sku: formData.sku,
         stockInHand: parseInt(formData.stockInHand || 0),
         stockOnRoute: parseInt(formData.stockOnRoute || 0),
         costINR: cost,

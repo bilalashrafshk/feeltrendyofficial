@@ -45,11 +45,17 @@ const Financials = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let payload = {
-        ...formData,
+      // Sanitize payload for Prisma
+      const { entryType, ...rest } = formData;
+      const payload = {
+        type: formData.type,
+        entityName: formData.entityName,
+        description: formData.description,
         amount: formData.entryType === 'PAYMENT' ? 0 : parseFloat(formData.amount || 0),
         advanceAmount: formData.entryType === 'PAYMENT' ? parseFloat(formData.amount || 0) : parseFloat(formData.advanceAmount || 0),
-        exchangeRate: parseFloat(formData.exchangeRate || globalRate)
+        exchangeRate: parseFloat(formData.exchangeRate || 3.3),
+        status: formData.status,
+        currency: formData.currency
       };
 
       if (editingId) {

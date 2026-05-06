@@ -123,6 +123,7 @@ const Invoices = () => {
         amount: total,
         advanceAmount: parseFloat(formData.advanceAmount || 0),
         description: `Invoice for ${formData.customerName}`,
+        exchangeRate: parseFloat(formData.exchangeRate || 3.3),
         currency: 'PKR',
         status: total <= formData.advanceAmount ? 'PAID' : 'PENDING'
       });
@@ -131,8 +132,8 @@ const Invoices = () => {
       setFormData({ customerName: '', items: [], advanceAmount: 0, exchangeRate: formData.exchangeRate });
       fetchData();
     } catch (err) {
-      console.error(err);
-      alert("Error generating invoice");
+      console.error("Invoice Error:", err);
+      alert(`Error generating invoice: ${err.message}`);
     }
   };
 
