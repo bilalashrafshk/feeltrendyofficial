@@ -272,10 +272,10 @@ const Financials = () => {
                         borderRadius: '0.5rem', 
                         fontWeight: '800',
                         fontSize: '0.85rem',
-                        background: balance > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                        color: balance > 0 ? 'var(--danger-color)' : 'var(--success-color)'
+                        background: t.type === 'PAYABLE' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                        color: t.type === 'PAYABLE' ? 'var(--danger-color)' : 'var(--success-color)'
                       }}>
-                        Rs. {Math.abs(balance).toLocaleString()} {balance > 0 ? 'DR' : 'CR'}
+                        Rs. {Math.abs(balance).toLocaleString()}
                       </span>
                     </td>
                     <td style={{textAlign: 'center'}}>
