@@ -31,7 +31,7 @@ model Transaction {
   amount        Float
   advanceAmount Float           @default(0)
   currency      String          @default("PKR")
-  exchangeRate  Float           @default(3.3)
+  exchangeRate  Float
   status        String          @default("PENDING")
   date          DateTime        @default(now())
   createdAt     DateTime        @default(now())

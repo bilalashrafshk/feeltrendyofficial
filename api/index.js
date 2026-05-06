@@ -87,9 +87,16 @@ app.get('/api/transactions', async (req, res) => {
 
 app.post('/api/transactions', async (req, res) => {
   try {
-    const transaction = await prisma.transaction.create({ data: req.body });
+    const data = {
+      ...req.body,
+      amount: parseFloat(req.body.amount || 0),
+      advanceAmount: parseFloat(req.body.advanceAmount || 0),
+      exchangeRate: parseFloat(req.body.exchangeRate || 1)
+    };
+    const transaction = await prisma.transaction.create({ data });
     res.json({ data: transaction });
   } catch (err) {
+    console.error("Transaction Error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -127,9 +134,16 @@ app.get('/api/invoices', async (req, res) => {
 
 app.post('/api/invoices', async (req, res) => {
   try {
-    const invoice = await prisma.invoice.create({ data: req.body });
+    const data = {
+      ...req.body,
+      totalAmount: parseFloat(req.body.totalAmount || 0),
+      advanceAmount: parseFloat(req.body.advanceAmount || 0),
+      exchangeRate: parseFloat(req.body.exchangeRate || 1)
+    };
+    const invoice = await prisma.invoice.create({ data });
     res.json({ data: invoice });
   } catch (err) {
+    console.error("Invoice Error:", err);
     res.status(500).json({ error: err.message });
   }
 });

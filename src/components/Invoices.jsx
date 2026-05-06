@@ -64,8 +64,10 @@ const Invoices = () => {
       // 1. Create Invoice
       const invRes = await addInvoice({
         customerName: formData.customerName,
+        items: items,
         totalAmount: total,
-        status: total <= formData.advanceAmount ? 'PAID' : 'PENDING'
+        advanceAmount: parseFloat(formData.advanceAmount || 0),
+        exchangeRate: parseFloat(formData.exchangeRate || 1)
       });
 
       // 2. Create Customer if not exists
