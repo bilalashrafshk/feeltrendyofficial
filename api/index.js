@@ -148,6 +148,25 @@ app.post('/api/invoices', async (req, res) => {
   }
 });
 
+app.put('/api/invoices/:id', async (req, res) => {
+  try {
+    const data = {
+      ...req.body,
+      totalAmount: req.body.totalAmount !== undefined ? parseFloat(req.body.totalAmount) : undefined,
+      advanceAmount: req.body.advanceAmount !== undefined ? parseFloat(req.body.advanceAmount) : undefined,
+      exchangeRate: req.body.exchangeRate !== undefined ? parseFloat(req.body.exchangeRate) : undefined,
+    };
+    const invoice = await prisma.invoice.update({
+      where: { id: req.params.id },
+      data
+    });
+    res.json({ data: invoice });
+  } catch (err) {
+    console.error("Invoice Update Error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/invoices/:id', async (req, res) => {
   try {
     await prisma.invoice.delete({ where: { id: req.params.id } });
