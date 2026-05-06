@@ -28,7 +28,7 @@ const Financials = () => {
     description: '',
     currency: 'PKR',
     status: 'PENDING',
-    exchangeRate: '3.3',
+    exchangeRate: '',
     entityName: ''
   });
 
@@ -54,7 +54,11 @@ const Financials = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const rate = parseFloat(formData.exchangeRate || 3.3);
+      if (formData.currency === 'INR' && !formData.exchangeRate) {
+        alert("Please apply an exchange rate for this INR transaction to proceed.");
+        return;
+      }
+      const rate = parseFloat(formData.exchangeRate);
       const amount = parseFloat(formData.amount || 0);
       const advance = parseFloat(formData.advanceAmount || 0);
       
@@ -220,7 +224,7 @@ const Financials = () => {
             )}
             {formData.currency === 'INR' && (
               <div style={{gridColumn: '1 / -1', background: 'rgba(168, 85, 247, 0.05)', padding: '1rem', borderRadius: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--primary-accent)', fontWeight: '700'}}>
-                <Info size={18} /> PKR Equivalent: Rs. {Math.round(parseFloat(formData.amount || 0) * parseFloat(formData.exchangeRate || 3.3)).toLocaleString()}
+                <Info size={18} /> PKR Equivalent: {formData.exchangeRate ? `Rs. ${Math.round(parseFloat(formData.amount || 0) * parseFloat(formData.exchangeRate)).toLocaleString()}` : 'Enter Rate to Calculate'}
               </div>
             )}
             <button type="submit" className="btn btn-primary" style={{gridColumn: '1 / -1', padding: '1rem', fontSize: '1rem'}}>

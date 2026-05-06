@@ -13,7 +13,7 @@ const Inventory = () => {
     stockInHand: '',
     stockOnRoute: '',
     costINR: '',
-    exchangeRate: '3.3'
+    exchangeRate: ''
   });
 
   const fetchData = async () => {
@@ -32,7 +32,11 @@ const Inventory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const rate = parseFloat(formData.exchangeRate || 3.3);
+      if (!formData.exchangeRate) {
+        alert("Please apply an exchange rate for this product to proceed.");
+        return;
+      }
+      const rate = parseFloat(formData.exchangeRate);
       const cost = parseFloat(formData.costINR || 0);
       
       const payload = {
@@ -163,7 +167,9 @@ const Inventory = () => {
                </div>
                <div>
                   <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: '700'}}>CALCULATED LANDED PRICE</p>
-                  <p style={{fontSize: '1.25rem', fontWeight: '800'}}>Rs. {Math.round(parseFloat(formData.costINR || 0) * parseFloat(formData.exchangeRate || 3.3)).toLocaleString()}</p>
+                  <p style={{fontSize: '1.25rem', fontWeight: '800'}}>
+                    {formData.exchangeRate ? `Rs. ${Math.round(parseFloat(formData.costINR || 0) * parseFloat(formData.exchangeRate)).toLocaleString()}` : 'Enter Rate to Calculate'}
+                  </p>
                </div>
             </div>
 
