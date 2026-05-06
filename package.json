@@ -4,13 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --port 5008",
+    "build": "prisma generate && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "axios": "^1.16.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
@@ -28,6 +31,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc-fb9a514848-20240614",
     "eslint-plugin-react-refresh": "^0.4.12",
     "globals": "^15.9.0",
+    "prisma": "^6.19.3",
     "vite": "^5.4.10"
   }
 }

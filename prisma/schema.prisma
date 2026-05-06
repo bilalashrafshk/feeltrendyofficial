@@ -22,13 +22,14 @@ model Product {
 model Transaction {
   id            String          @id @default(uuid())
   type          TransactionType
+  entityName    String?
+  description   String?
   amount        Float
   advanceAmount Float           @default(0)
   currency      String          @default("PKR")
+  exchangeRate  Float           @default(3.3)
   status        String          @default("PENDING")
-  description   String?
   date          DateTime        @default(now())
-  dueDate       DateTime?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -38,10 +39,34 @@ enum TransactionType {
   RECEIVABLE
 }
 
+model Invoice {
+  id            String   @id @default(uuid())
+  customerName  String
+  items         Json
+  totalAmount   Float
+  advanceAmount Float    @default(0)
+  exchangeRate  Float    @default(3.3)
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
+
 model Shipment {
   id              String         @id @default(uuid())
   trackingNumber  String?        @unique
-  status          ShipmentStatus @default(IN_TRANSIT)
+  status          String         @default("IN_TRANSIT")
   items           Json?
   expectedArrival DateTime?
   notes           String?
@@ -49,27 +74,7 @@ model Shipment {
   updatedAt       DateTime       @updatedAt
 }
 
-enum ShipmentStatus {
-  IN_TRANSIT
-  DELIVERED
-  CANCELLED
-}
-
-model Invoice {
-  id            String   @id @default(uuid())
-  customerName  String
-  items         Json
-  totalAmount   Float
-  advanceAmount Float    @default(0)
-  date          DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model ExchangeRate {
-  id        String   @id @default(uuid())
-  from      String
-  to        String
-  rate      Float
-  updatedAt DateTime @updatedAt
+model Settings {
+  id           String @id @default("global")
+  exchangeRate Float  @default(3.3)
 }
