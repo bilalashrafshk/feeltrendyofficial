@@ -97,15 +97,17 @@ const Inventory = () => {
     }
   };
 
-  const calculatedCost = Math.round((parseFloat(formData.costAmount || 0) * parseFloat(formData.exchangeRate || 0)) + parseFloat(formData.shippingChargesPKR || 0));
-  const estProfit = Math.round(parseFloat(formData.expectedSalePrice || 0) - calculatedCost);
+  const qty = parseInt(formData.stockInHand || 1);
+  const calculatedCost = Math.round(((parseFloat(formData.costAmount || 0) * parseFloat(formData.exchangeRate || 0)) + parseFloat(formData.shippingChargesPKR || 0)) * qty);
+  const totalRev = Math.round(parseFloat(formData.expectedSalePrice || 0) * qty);
+  const estProfit = totalRev - calculatedCost;
 
   return (
     <div className="inventory-container">
       <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem'}}>
         <div>
           <h1 style={{fontSize: '2rem', fontWeight: '900', letterSpacing: '-0.75px', marginBottom: '0.25rem'}}>Inventory Control</h1>
-          <p style={{color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500'}}>Manage costs and profit margins</p>
+          <p style={{color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500'}}>Total batch valuation & profit analysis</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); setEditingId(null); }} style={{padding: '0.8rem 1.5rem', borderRadius: '1rem'}}>
           {showForm ? <X size={18} /> : <Plus size={18} />} {showForm ? 'Cancel' : 'Add Product'}
@@ -171,7 +173,7 @@ const Inventory = () => {
                     <TrendingDown size={20} color="white" />
                   </div>
                   <div>
-                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>TOTAL COST PRICE (PKR)</p>
+                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>BATCH COST ({qty} Units)</p>
                       <p style={{fontSize: '1.1rem', fontWeight: '800'}}>Rs. {calculatedCost.toLocaleString()}</p>
                   </div>
                 </div>
@@ -181,8 +183,8 @@ const Inventory = () => {
                     <DollarSign size={20} color="white" />
                   </div>
                   <div>
-                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>EXPECTED SALE PRICE</p>
-                      <p style={{fontSize: '1.1rem', fontWeight: '800'}}>Rs. {parseFloat(formData.expectedSalePrice || 0).toLocaleString()}</p>
+                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>TOTAL BATCH REVENUE</p>
+                      <p style={{fontSize: '1.1rem', fontWeight: '800'}}>Rs. {totalRev.toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -191,7 +193,7 @@ const Inventory = () => {
                     <TrendingUp size={20} color="white" />
                   </div>
                   <div>
-                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>EST. PROFIT</p>
+                      <p style={{fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: '700'}}>TOTAL BATCH PROFIT</p>
                       <p style={{fontSize: '1.1rem', fontWeight: '800'}}>Rs. {estProfit.toLocaleString()}</p>
                   </div>
                 </div>
